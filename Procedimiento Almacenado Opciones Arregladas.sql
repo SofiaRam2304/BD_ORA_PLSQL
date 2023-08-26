@@ -137,9 +137,9 @@ BEGIN
     -- Construir el objeto JSON manualmente
     json := '[';
     FOR i IN 1..listaMenu.COUNT LOOP
-        json := json || '{"nombreVisible":"' || listaMenu(i).nombreVisible || '",'
-                     || '"nombreMetodo":"' || listaMenu(i).nombreMetodo || '",'
-                     || '"rol":"' || listaMenu(i).rol || '",'
+        json := json || '{"nombreVisible":"' || listaMenu(i).v_nombreVisible || '",'
+                     || '"nombreMetodo":"' || listaMenu(i).v_nombreMetodo || '",'
+                     || '"rol":"' || listaMenu(i).v_rol || '",'
                      || '"permiteActualiar":' || listaMenu(i).permiteActualiar || ','
                      || '"permiteInsertar":' || listaMenu(i).permiteInsertar || ','
                      || '"permiteConsultar":' || listaMenu(i).permiteConsultar || '}';
