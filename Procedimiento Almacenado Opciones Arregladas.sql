@@ -44,7 +44,7 @@ END;
 ===================================================================================================
 */
 
-CREATE OR REPLACE PROCEDURE sp_obtener_menu(usuario IN VARCHAR2) AS
+CREATE OR REPLACE PROCEDURE FICOPEN.sp_obtener_menu(usuario IN VARCHAR2) AS
     CURSOR cur_menu IS
         SELECT
             a.NOMBRE_VISIBLE,
