@@ -93,9 +93,9 @@ END;
 
 CREATE OR REPLACE PROCEDURE sp_obtener_menu(usuario IN VARCHAR2, json OUT CLOB) AS
     TYPE menu_rec_type IS RECORD (
-        nombreVisible  ACC_X_FORM_ROL.NOMBRE_VISIBLE%TYPE,
-        nombreMetodo   ACC_X_FORM_ROL.NOMBRE_METODO%TYPE,
-        rol            ACC_X_FORM_ROL.COD_ROL%TYPE,
+        v_nombreVisible  ACC_X_FORM_ROL.NOMBRE_VISIBLE%TYPE,
+        v_nombreMetodo   ACC_X_FORM_ROL.NOMBRE_METODO%TYPE,
+        v_rol            ACC_X_FORM_ROL.COD_ROL%TYPE,
         permiteActualiar BOOLEAN,
         permiteInsertar BOOLEAN,
         permiteConsultar BOOLEAN
@@ -162,3 +162,75 @@ BEGIN
   DBMS_OUTPUT.PUT_LINE(v_json);
 END;
 /
+
+
+
+
+
+
+
+
+--//////////////////////////////////
+
+CREATE OR REPLACE PROCEDURE sp_obtener_menu(usuario IN VARCHAR2, json OUT CLOB) AS
+    TYPE menu_rec_type IS RECORD (
+        v_nombreVisible  ACC_X_FORM_ROL.NOMBRE_VISIBLE%TYPE,
+        v_nombreMetodo   ACC_X_FORM_ROL.NOMBRE_METODO%TYPE,
+        v_rol            ACC_X_FORM_ROL.COD_ROL%TYPE,
+        permiteActualizar BOOLEAN,
+        permiteInsertar BOOLEAN,
+        permiteConsultar BOOLEAN
+    );
+
+    TYPE menu_list_type IS TABLE OF menu_rec_type;
+
+    listaMenu menu_list_type := menu_list_type();
+BEGIN
+    -- Paso 1: Consulta SQL para recuperar datos del menú
+    SELECT
+        a.NOMBRE_VISIBLE,
+        a.NOMBRE_METODO,
+        a.COD_ROL,
+        CASE WHEN a.PERM_ACTUALIZAR = 'S' THEN TRUE ELSE FALSE END,
+        CASE WHEN a.PERM_INSERTAR = 'S' THEN TRUE ELSE FALSE END,
+        CASE WHEN a.PERM_CONSULTAR = 'S' THEN TRUE ELSE FALSE END
+    BULK COLLECT INTO
+        listaMenu
+    FROM
+        ACC_X_FORM_ROL a
+    JOIN
+        USUARIOS_X_ROLES b
+    ON
+        a.COD_ROL = b.COD_ROL
+    JOIN
+        USUARIOS c
+    ON
+        b.COD_USUARIO = c.COD_USUARIO
+    WHERE
+        (
+            (b.COD_ROL = 'OFNEGO' AND c.COD_USUARIO = usuario)
+            OR
+            (b.COD_ROL <> 'OFNEGO' AND c.COD_USUARIO = usuario AND c.EST_ACTIVO = 'S')
+        )
+        AND
+        a.COD_SIST_FORMA = 'SF';
+
+    -- Paso 2: Construir el objeto JSON manualmente
+    json := '[';
+    FOR i IN 1..listaMenu.COUNT LOOP
+        json := json || '{"nombreVisible":"' || listaMenu(i).v_nombreVisible || '",'
+                     || '"nombreMetodo":"' || listaMenu(i).v_nombreMetodo || '",'
+                     || '"rol":"' || listaMenu(i).v_rol || '",'
+                     || '"permiteActualizar":' || listaMenu(i).permiteActualizar || ','
+                     || '"permiteInsertar":' || listaMenu(i).permiteInsertar || ','
+                     || '"permiteConsultar":' || listaMenu(i).permiteConsultar || '}';
+        IF i < listaMenu.COUNT THEN
+            json := json || ',';
+        END IF;
+    END LOOP;
+    json := json || ']';
+
+    -- Paso 3: Fin del procedimiento
+END;
+/
+
